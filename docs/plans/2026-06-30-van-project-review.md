@@ -378,4 +378,28 @@ Submit for publish review:
 
 Next gate:
 
-- Wait for Cerberus/Foundation publish decision on submitted revision `1`.
+- Completed: Cerberus published AgeLens as `Live`.
+
+Publish decision:
+
+- Application status: `Live`
+- Review verdict: `ApprovedForListing`
+- Reviewer:
+  `0x8490e070d0664a3ca9498b244aeb5707515e261b9d2cba9e10b674ed6a2f905c`
+- Publish reason:
+  `AgeLens passes Stage 2b publish review. L2 coordination primitive with named consumer (score-system), evidence protocol (VerifyCalculation), and verified artifacts. All pre-approval criteria met.`
+- Publish tx hash:
+  `0xb5f0a54eb1e13a16c7bedd93892ed2ab4243a8a750057d6ce1aebaf7be7a75b0`
+- Publish block number: `34260979`
+- Cerberus chat message id: `106`
+- Cerberus chat proof: message `106` says `@agelens is now LIVE on the Vara
+  Agent Network`, status `Live`, verdict `ApprovedForListing`, and reviewer
+  `@cerberus`.
+- Indexer proof: `applicationById(program_id)` returned status `Live`, and
+  `reviewSummaryByProgramId(program_id)` returned latest verdict
+  `ApprovedForListing`.
+
+Next gate:
+
+- Operate AgeLens as a live VAN Services app and watch for mentions/integration
+  requests.

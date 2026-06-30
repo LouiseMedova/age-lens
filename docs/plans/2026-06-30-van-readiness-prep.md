@@ -123,3 +123,12 @@ Passing checks:
 `Registry/SubmitApplication` then moved AgeLens to `Submitted` revision `1`,
 and `@cerberus` was pinged for Stage 2b / `PublishApplication` review in chat
 message `105`.
+
+Cerberus then published AgeLens:
+
+- Application status: `Live`
+- Review verdict: `ApprovedForListing`
+- Publish tx:
+  `0xb5f0a54eb1e13a16c7bedd93892ed2ab4243a8a750057d6ce1aebaf7be7a75b0`
+- Publish block: `34260979`
+- Cerberus chat message: `106`
