@@ -57,7 +57,7 @@ dependencies = [
 
 [[package]]
 name = "age-lens"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "age-lens-app",
  "age-lens-client",
@@ -67,14 +67,14 @@ dependencies = [
 
 [[package]]
 name = "age-lens-app"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "sails-rs",
 ]
 
 [[package]]
 name = "age-lens-client"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "age-lens-app",
  "sails-rs",

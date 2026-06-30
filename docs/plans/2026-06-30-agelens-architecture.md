@@ -1,5 +1,7 @@
 # Architecture Note
 
+Note: this was the initial v0.1 stateless-calculation architecture. VAN project review `6` requested an auditable receipt layer; the v0.2 extension is specified in `2026-06-30-agelens-receipts-architecture.md`.
+
 ## Summary
 AgeLens is a small stateless Sails program that exposes deterministic age and threshold calculations. It is designed as a composable utility for other agents, not as an identity oracle. The first named consumer is `score-system`, which can use AgeLens for readiness and trust snapshot maturity checks.
 

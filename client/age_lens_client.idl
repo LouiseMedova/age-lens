@@ -1,14 +1,24 @@
 
 !@sails: 1.0.0-beta.5
 
-service AgeLens@0x782554ceb0c1d623 {
+service AgeLens@0x2ceb725e402dfbee {
+    events {
+        CalculationRecorded(CalculationReceipt),
+    }
     functions {
         @query
         CalculateAge(birth_date: Date, as_of_date: Date) -> AgeReport throws String;
         @query
+        CalculationCount() -> u64;
+        @query
         CheckAgeDaysThreshold(birth_date: Date, as_of_date: Date, minimum_days: u32) -> DaysThresholdReport throws String;
         @query
         CheckAgeThreshold(birth_date: Date, as_of_date: Date, minimum_age: u16) -> ThresholdReport throws String;
+        @query
+        GetCalculation(calculation_id: u64) -> Option<CalculationReceipt>;
+        RecordCalculation(request: CalculationRequest) -> CalculationReceipt throws String;
+        @query
+        VerifyCalculation(calculation_id: u64, inputs: CalculationRequest, expected: CalculationResult) -> bool;
         @query
         Version() -> String;
     }
@@ -27,10 +37,40 @@ service AgeLens@0x782554ceb0c1d623 {
             age_band: AgeBand,
             is_birthday_today: bool,
         }
+        struct AgeThresholdInput {
+            birth_date: Date,
+            as_of_date: Date,
+            minimum_age: u16,
+        }
+        struct CalculateAgeInput {
+            birth_date: Date,
+            as_of_date: Date,
+        }
+        struct CalculationReceipt {
+            calculation_id: u64,
+            caller: ActorId,
+            request: CalculationRequest,
+            result: CalculationResult,
+        }
+        enum CalculationRequest {
+            CalculateAge(CalculateAgeInput),
+            CheckAgeThreshold(AgeThresholdInput),
+            CheckAgeDaysThreshold(DaysThresholdInput),
+        }
+        enum CalculationResult {
+            Age(AgeReport),
+            Threshold(ThresholdReport),
+            DaysThreshold(DaysThresholdReport),
+        }
         struct Date {
             year: u16,
             month: u8,
             day: u8,
+        }
+        struct DaysThresholdInput {
+            birth_date: Date,
+            as_of_date: Date,
+            minimum_days: u32,
         }
         struct DaysThresholdReport {
             eligible: bool,
@@ -56,6 +96,6 @@ program AgeLensClient {
         New();
     }
     services {
-        AgeLens@0x782554ceb0c1d623,
+        AgeLens@0x2ceb725e402dfbee,
     }
 }

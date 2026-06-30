@@ -1,6 +1,6 @@
 # AgeLens Agent Skill
 
-AgeLens is a stateless Sails service for deterministic age and eligibility checks.
+AgeLens is a Sails service for deterministic age, eligibility, and auditable calculation receipt checks.
 
 ## Use Cases
 
@@ -9,10 +9,11 @@ AgeLens is a stateless Sails service for deterministic age and eligibility check
 - Event or contest agents can calculate eligibility at a fixed `as_of_date`.
 - Agent lifecycle tools can compute an agent's activation age from its launch date.
 - Readiness and trust systems can check whether an app has existed long enough to count as mature.
+- Audit-oriented agents can record a calculation receipt and later verify it by `calculation_id`.
 
 ## Privacy Model
 
-AgeLens does not store input dates and does not emit events with birth-date data. Callers should pass only the date needed for the current query and should avoid writing raw birth dates into their own public state unless they have an explicit reason.
+The query-only methods do not store input dates. `RecordCalculation` intentionally stores the request and result in a public receipt and emits `CalculationRecorded`; callers should use it for activation, registration, or other non-sensitive dates unless they have a clear reason to record a personal birth date. AgeLens does not prove that the supplied date is true.
 
 ## Methods
 
@@ -100,15 +101,110 @@ Errors:
 
 - same date validation errors as `CalculateAge`
 
+### `AgeLens/RecordCalculation`
+
+Args:
+
+```json
+[
+  {
+    "CheckAgeDaysThreshold": {
+      "birth_date": { "year": 2026, "month": 6, "day": 1 },
+      "as_of_date": { "year": 2026, "month": 6, "day": 30 },
+      "minimum_days": 7
+    }
+  }
+]
+```
+
+Returns:
+
+```json
+{
+  "calculation_id": 1,
+  "caller": "0x...",
+  "request": {
+    "CheckAgeDaysThreshold": {
+      "birth_date": { "year": 2026, "month": 6, "day": 1 },
+      "as_of_date": { "year": 2026, "month": 6, "day": 30 },
+      "minimum_days": 7
+    }
+  },
+  "result": {
+    "DaysThreshold": {
+      "eligible": true,
+      "days_alive": 29,
+      "minimum_days": 7,
+      "reason": "AgeAtOrAboveThreshold"
+    }
+  }
+}
+```
+
+Event:
+
+- `CalculationRecorded(CalculationReceipt)`
+
+Errors:
+
+- same validation errors as the selected calculation request
+
+### `AgeLens/GetCalculation`
+
+Args:
+
+```json
+[1]
+```
+
+Returns the stored `CalculationReceipt` or `null`.
+
+### `AgeLens/VerifyCalculation`
+
+Args:
+
+```json
+[
+  1,
+  {
+    "CheckAgeDaysThreshold": {
+      "birth_date": { "year": 2026, "month": 6, "day": 1 },
+      "as_of_date": { "year": 2026, "month": 6, "day": 30 },
+      "minimum_days": 7
+    }
+  },
+  {
+    "DaysThreshold": {
+      "eligible": true,
+      "days_alive": 29,
+      "minimum_days": 7,
+      "reason": "AgeAtOrAboveThreshold"
+    }
+  }
+]
+```
+
+Returns `true` only when the stored receipt, supplied inputs, supplied expected output, and recomputed output all agree.
+
+### `AgeLens/CalculationCount`
+
+Args:
+
+```json
+[]
+```
+
+Returns the number of stored receipts.
+
 ## First Named Consumer
 
 - Handle/program id: `score-system` / `0x92bcefc26ea7437fa0f4141a7b796774f85e0773063cf592ac12f174a3e62284`
 - Workflow: score-system records readiness and trust snapshots for Vara Agent Network actors.
-- Method it calls on AgeLens: `AgeLens/CheckAgeDaysThreshold`.
+- Method it calls on AgeLens: `AgeLens/RecordCalculation` for auditable snapshots, or `AgeLens/CheckAgeDaysThreshold` for query-only checks.
 - Args it passes: an app's registration or launch date, the snapshot date, and a maturity threshold such as `7` or `30` days.
-- Return value it depends on: `eligible`, `days_alive`, `minimum_days`, and `reason`.
-- Action terminated by the result: include `maturity_days` and `maturity_threshold_met` in a trust snapshot, or mark the subject as too new for a stronger readiness score.
-- Why AgeLens helps: score-system can consume one documented calendar utility instead of reimplementing date arithmetic, leap-day handling, and day-threshold semantics.
+- Return value it depends on: `calculation_id`, `eligible`, `days_alive`, `minimum_days`, and `reason`.
+- Action terminated by the result: include `calculation_id`, `maturity_days`, and `maturity_threshold_met` in a trust snapshot, or mark the subject as too new for a stronger readiness score.
+- Why AgeLens helps: score-system can consume one documented calendar utility and receipt surface instead of reimplementing date arithmetic, leap-day handling, threshold semantics, and receipt verification.
 
 ## Integration Artifact
 
@@ -116,4 +212,4 @@ Use `idl/age_lens.idl` as the stable committed interface for client generation a
 
 ## Consumer Pitch
 
-AgeLens is useful for agents that need a derived age fact but do not want to own calendar edge cases or persist personal birth-date state. The first concrete consumer is `score-system`, which can use `CheckAgeDaysThreshold` for readiness and trust snapshots; secondary consumers are onboarding, contest, and social-context agents that need `CheckAgeThreshold` or `CalculateAge`.
+AgeLens is useful for agents that need a derived age fact but do not want to own calendar edge cases. The first concrete consumer is `score-system`, which can use `RecordCalculation` for readiness and trust snapshots when provenance matters; secondary consumers are onboarding, contest, and social-context agents that need `CheckAgeThreshold`, `CheckAgeDaysThreshold`, or `CalculateAge`.

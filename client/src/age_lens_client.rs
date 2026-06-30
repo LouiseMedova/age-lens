@@ -66,10 +66,52 @@ pub mod age_lens {
     }
     #[sails_rs::sails_type(crate = sails_rs)]
     #[derive(PartialEq, Clone, Debug)]
+    pub struct AgeThresholdInput {
+        pub birth_date: Date,
+        pub as_of_date: Date,
+        pub minimum_age: u16,
+    }
+    #[sails_rs::sails_type(crate = sails_rs)]
+    #[derive(PartialEq, Clone, Debug)]
+    pub struct CalculateAgeInput {
+        pub birth_date: Date,
+        pub as_of_date: Date,
+    }
+    #[sails_rs::sails_type(crate = sails_rs)]
+    #[derive(PartialEq, Clone, Debug)]
+    pub struct CalculationReceipt {
+        pub calculation_id: u64,
+        pub caller: ActorId,
+        pub request: CalculationRequest,
+        pub result: CalculationResult,
+    }
+    #[sails_rs::sails_type(crate = sails_rs)]
+    #[derive(PartialEq, Clone, Debug)]
+    pub enum CalculationRequest {
+        CalculateAge(CalculateAgeInput),
+        CheckAgeThreshold(AgeThresholdInput),
+        CheckAgeDaysThreshold(DaysThresholdInput),
+    }
+    #[sails_rs::sails_type(crate = sails_rs)]
+    #[derive(PartialEq, Clone, Debug)]
+    pub enum CalculationResult {
+        Age(AgeReport),
+        Threshold(ThresholdReport),
+        DaysThreshold(DaysThresholdReport),
+    }
+    #[sails_rs::sails_type(crate = sails_rs)]
+    #[derive(PartialEq, Clone, Debug)]
     pub struct Date {
         pub year: u16,
         pub month: u8,
         pub day: u8,
+    }
+    #[sails_rs::sails_type(crate = sails_rs)]
+    #[derive(PartialEq, Clone, Debug)]
+    pub struct DaysThresholdInput {
+        pub birth_date: Date,
+        pub as_of_date: Date,
+        pub minimum_days: u32,
     }
     #[sails_rs::sails_type(crate = sails_rs)]
     #[derive(PartialEq, Clone, Debug)]
@@ -101,6 +143,9 @@ pub mod age_lens {
             birth_date: Date,
             as_of_date: Date,
         ) -> sails_rs::client::PendingCall<io::CalculateAge, Self::Env>;
+        fn calculation_count(
+            &self,
+        ) -> sails_rs::client::PendingCall<io::CalculationCount, Self::Env>;
         fn check_age_days_threshold(
             &self,
             birth_date: Date,
@@ -113,6 +158,20 @@ pub mod age_lens {
             as_of_date: Date,
             minimum_age: u16,
         ) -> sails_rs::client::PendingCall<io::CheckAgeThreshold, Self::Env>;
+        fn get_calculation(
+            &self,
+            calculation_id: u64,
+        ) -> sails_rs::client::PendingCall<io::GetCalculation, Self::Env>;
+        fn record_calculation(
+            &mut self,
+            request: CalculationRequest,
+        ) -> sails_rs::client::PendingCall<io::RecordCalculation, Self::Env>;
+        fn verify_calculation(
+            &self,
+            calculation_id: u64,
+            inputs: CalculationRequest,
+            expected: CalculationResult,
+        ) -> sails_rs::client::PendingCall<io::VerifyCalculation, Self::Env>;
         fn version(&self) -> sails_rs::client::PendingCall<io::Version, Self::Env>;
     }
 
@@ -120,7 +179,7 @@ pub mod age_lens {
 
     impl sails_rs::client::Identifiable for AgeLensImpl {
         const INTERFACE_ID: sails_rs::InterfaceId =
-            sails_rs::InterfaceId::from_bytes_8([120, 37, 84, 206, 176, 193, 214, 35]);
+            sails_rs::InterfaceId::from_bytes_8([44, 235, 114, 94, 64, 45, 251, 238]);
     }
 
     impl<E: sails_rs::client::GearEnv> AgeLens for sails_rs::client::Service<AgeLensImpl, E> {
@@ -131,6 +190,11 @@ pub mod age_lens {
             as_of_date: Date,
         ) -> sails_rs::client::PendingCall<io::CalculateAge, Self::Env> {
             self.pending_call((birth_date, as_of_date))
+        }
+        fn calculation_count(
+            &self,
+        ) -> sails_rs::client::PendingCall<io::CalculationCount, Self::Env> {
+            self.pending_call(())
         }
         fn check_age_days_threshold(
             &self,
@@ -148,6 +212,26 @@ pub mod age_lens {
         ) -> sails_rs::client::PendingCall<io::CheckAgeThreshold, Self::Env> {
             self.pending_call((birth_date, as_of_date, minimum_age))
         }
+        fn get_calculation(
+            &self,
+            calculation_id: u64,
+        ) -> sails_rs::client::PendingCall<io::GetCalculation, Self::Env> {
+            self.pending_call((calculation_id,))
+        }
+        fn record_calculation(
+            &mut self,
+            request: CalculationRequest,
+        ) -> sails_rs::client::PendingCall<io::RecordCalculation, Self::Env> {
+            self.pending_call((request,))
+        }
+        fn verify_calculation(
+            &self,
+            calculation_id: u64,
+            inputs: CalculationRequest,
+            expected: CalculationResult,
+        ) -> sails_rs::client::PendingCall<io::VerifyCalculation, Self::Env> {
+            self.pending_call((calculation_id, inputs, expected))
+        }
         fn version(&self) -> sails_rs::client::PendingCall<io::Version, Self::Env> {
             self.pending_call(())
         }
@@ -156,8 +240,49 @@ pub mod age_lens {
     pub mod io {
         use super::*;
         sails_rs::io_struct_impl!(CalculateAge (birth_date: super::Date, as_of_date: super::Date) -> super::AgeReport | String, 0, <super::AgeLensImpl as sails_rs::client::Identifiable>::INTERFACE_ID);
-        sails_rs::io_struct_impl!(CheckAgeDaysThreshold (birth_date: super::Date, as_of_date: super::Date, minimum_days: u32) -> super::DaysThresholdReport | String, 1, <super::AgeLensImpl as sails_rs::client::Identifiable>::INTERFACE_ID);
-        sails_rs::io_struct_impl!(CheckAgeThreshold (birth_date: super::Date, as_of_date: super::Date, minimum_age: u16) -> super::ThresholdReport | String, 2, <super::AgeLensImpl as sails_rs::client::Identifiable>::INTERFACE_ID);
-        sails_rs::io_struct_impl!(Version () -> String, 3, <super::AgeLensImpl as sails_rs::client::Identifiable>::INTERFACE_ID);
+        sails_rs::io_struct_impl!(CalculationCount () -> u64, 1, <super::AgeLensImpl as sails_rs::client::Identifiable>::INTERFACE_ID);
+        sails_rs::io_struct_impl!(CheckAgeDaysThreshold (birth_date: super::Date, as_of_date: super::Date, minimum_days: u32) -> super::DaysThresholdReport | String, 2, <super::AgeLensImpl as sails_rs::client::Identifiable>::INTERFACE_ID);
+        sails_rs::io_struct_impl!(CheckAgeThreshold (birth_date: super::Date, as_of_date: super::Date, minimum_age: u16) -> super::ThresholdReport | String, 3, <super::AgeLensImpl as sails_rs::client::Identifiable>::INTERFACE_ID);
+        sails_rs::io_struct_impl!(GetCalculation (calculation_id: u64) -> super::Option<super::CalculationReceipt, >, 4, <super::AgeLensImpl as sails_rs::client::Identifiable>::INTERFACE_ID);
+        sails_rs::io_struct_impl!(RecordCalculation (request: super::CalculationRequest) -> super::CalculationReceipt | String, 5, <super::AgeLensImpl as sails_rs::client::Identifiable>::INTERFACE_ID);
+        sails_rs::io_struct_impl!(VerifyCalculation (calculation_id: u64, inputs: super::CalculationRequest, expected: super::CalculationResult) -> bool, 6, <super::AgeLensImpl as sails_rs::client::Identifiable>::INTERFACE_ID);
+        sails_rs::io_struct_impl!(Version () -> String, 7, <super::AgeLensImpl as sails_rs::client::Identifiable>::INTERFACE_ID);
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    pub mod events {
+        use super::*;
+        #[sails_rs::sails_type(crate = sails_rs)]
+        #[derive(PartialEq, Debug)]
+        pub enum AgeLensEvents {
+            #[codec(index = 0)]
+            CalculationRecorded(CalculationReceipt),
+        }
+
+        impl AgeLensEvents {
+            pub fn entry_id(&self) -> u16 {
+                match self {
+                    Self::CalculationRecorded { .. } => 0,
+                }
+            }
+        }
+
+        impl sails_rs::client::Event for AgeLensEvents {
+            fn decode_event(
+                route: &sails_rs::client::RouteIdx,
+                payload: impl AsRef<[u8]>,
+            ) -> Result<Self, sails_rs::scale_codec::Error> {
+                sails_rs::client::decode_event_v2::<Self>(route.0, payload)
+            }
+        }
+
+        impl sails_rs::client::Identifiable for AgeLensEvents {
+            const INTERFACE_ID: sails_rs::InterfaceId =
+                <AgeLensImpl as sails_rs::client::Identifiable>::INTERFACE_ID;
+        }
+
+        impl sails_rs::client::ServiceWithEvents for AgeLensImpl {
+            type Event = AgeLensEvents;
+        }
     }
 }

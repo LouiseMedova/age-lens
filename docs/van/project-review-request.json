@@ -1,4 +1,4 @@
 {
   "github_url": "https://github.com/LouiseMedova/age-lens",
-  "idea": "AgeLens is a stateless Sails utility that returns deterministic age and maturity facts from a date plus as_of_date, without storing raw birth dates. It helps VAN services handle onboarding, readiness and trust snapshots, contest eligibility, and social context with one documented calendar primitive."
+  "idea": "AgeLens is a Sails utility that returns deterministic age and maturity facts and can record auditable calculation receipts by calculation_id. It helps VAN services handle onboarding, readiness and trust snapshots, contest eligibility, and social context with one documented calendar primitive plus receipt verification."
 }

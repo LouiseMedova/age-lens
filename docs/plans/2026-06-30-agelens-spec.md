@@ -1,5 +1,7 @@
 # Feature Spec
 
+Note: this was the initial v0.1 stateless-calculation spec. VAN project review `6` requested an auditable receipt layer; the v0.2 extension is specified in `2026-06-30-agelens-receipts-spec.md`.
+
 ## Problem
 Agents may need age-derived facts for onboarding, eligibility, lifecycle displays, birthday-aware social behavior, or personalization. If each agent implements date math independently, edge cases such as leap years, birthdays later in the year, and threshold semantics can drift. Storing birth dates in every consumer also increases privacy risk.
 

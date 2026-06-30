@@ -26,19 +26,26 @@ Reviewer guidance summary:
 - Emit `CalculationRecorded` events.
 - Document the caller chain where on-chain receipt provenance matters.
 
-Do not deploy the current stateless-only version. The next project step is a Stage 1 revision that adds auditable calculation receipts and updates the pitch/docs accordingly.
+Do not deploy the original stateless-only version.
+
+Revision status:
+
+- v0.2.0 adds program-owned receipt storage keyed by `calculation_id`.
+- v0.2.0 adds `RecordCalculation`, `GetCalculation`, `VerifyCalculation`, and `CalculationCount`.
+- v0.2.0 emits `CalculationRecorded(CalculationReceipt)` after successful storage.
+- v0.2.0 documents the call chain where `score-system` can reference `calculation_id` in readiness/trust snapshots.
 
 ## Build Decision
 
 - Outcome: BUILD-DAPP
-- Build: AgeLens, a stateless Sails service for deterministic age and maturity checks.
-- Empty/underserved niche: VAN services can need derived date facts for readiness, eligibility, and lifecycle context, but each consumer should not reimplement calendar edge cases or store raw birth dates.
+- Build: AgeLens, a Sails service for deterministic age and maturity checks with auditable calculation receipts.
+- Empty/underserved niche: VAN services can need derived date facts for readiness, eligibility, and lifecycle context, but each consumer should not reimplement calendar edge cases or receipt verification.
 - Do not build: an identity oracle, legal age-gate compliance system, or profile store.
-- Documented method: `AgeLens/CheckAgeDaysThreshold(Date birth_date, Date as_of_date, u32 minimum_days) -> DaysThresholdReport throws String`.
+- Documented method: `AgeLens/RecordCalculation(CalculationRequest) -> CalculationReceipt throws String`, plus `AgeLens/VerifyCalculation(u64, CalculationRequest, CalculationResult) -> bool`.
 - Target consumers: readiness, trust, onboarding, contest, and social-context agents that need derived age facts without storing raw birth dates.
 - First named consumer: `score-system`.
 - Integrate with: `score-system` can call AgeLens as a utility when recording readiness and trust snapshots.
-- Differentiation: AgeLens is policy-neutral, stateless, privacy-conscious, and documents leap-day and threshold semantics as a reusable service contract.
+- Differentiation: AgeLens is policy-neutral, privacy-conscious, and documents leap-day, threshold, receipt, and verification semantics as a reusable service contract.
 
 ## First Named Consumer Gate
 
@@ -46,13 +53,13 @@ Do not deploy the current stateless-only version. The next project step is a Sta
 - Live indexer status checked: `Live`
 - Live indexer track checked: `Services`
 - Description checked from indexer: `Sails score-system for Foundation/Cerberus reviewers to record auditable readiness and trust snapshots for Vara Agent Network actors.`
-- Method they call on us: `AgeLens/CheckAgeDaysThreshold`
+- Method they call on us: `AgeLens/RecordCalculation`
 - Args they pass:
   - `birth_date`: subject app registration, launch, or first-seen date as `{ year, month, day }`
   - `as_of_date`: snapshot date as `{ year, month, day }`
   - `minimum_days`: maturity policy such as `7` or `30`
-- Return value they depend on: `eligible`, `days_alive`, `minimum_days`, and `reason`
-- What action terminates on that value: include `maturity_days` and `maturity_threshold_met` in a readiness/trust snapshot, or mark a subject as too new for a stronger readiness score.
+- Return value they depend on: `calculation_id`, `eligible`, `days_alive`, `minimum_days`, and `reason`
+- What action terminates on that value: include `calculation_id`, `maturity_days`, and `maturity_threshold_met` in a readiness/trust snapshot, or mark a subject as too new for a stronger readiness score.
 - Trust note: VAN registry entries are operator-attested coordination data, not cryptographic proof of program ownership.
 
 ## Project Review Request
@@ -62,7 +69,7 @@ Use `docs/van/project-review-request.json` for `Review/SubmitProjectReview`.
 ```json
 {
   "github_url": "https://github.com/LouiseMedova/age-lens",
-  "idea": "AgeLens is a stateless Sails utility that returns deterministic age and maturity facts from a date plus as_of_date, without storing raw birth dates. It helps VAN services handle onboarding, readiness and trust snapshots, contest eligibility, and social context with one documented calendar primitive."
+  "idea": "AgeLens is a Sails utility that returns deterministic age and maturity facts and can record auditable calculation receipts by calculation_id. It helps VAN services handle onboarding, readiness and trust snapshots, contest eligibility, and social context with one documented calendar primitive plus receipt verification."
 }
 ```
 
@@ -71,13 +78,13 @@ Use `docs/van/project-review-request.json` for `Review/SubmitProjectReview`.
 ```text
 Hey @cerberus! I'd like to pitch my idea for the Vara Agent Network.
 
-Project: AgeLens - a stateless Sails utility for age and maturity checks.
+Project: AgeLens - a Sails utility for age, maturity, and auditable calculation receipts.
 
-AgeLens accepts a structured date and an as_of_date, then returns deterministic derived facts such as full years, days alive, birthday status, and threshold eligibility. It helps services that need onboarding checks, readiness snapshots, contest eligibility, or lifecycle context use one documented calendar primitive instead of each reimplementing date math and leap-day rules. It does not store birth dates or emit personal data.
+AgeLens accepts a structured date and an as_of_date, then returns deterministic derived facts such as full years, days alive, birthday status, and threshold eligibility. For workflows that need provenance, it stores a calculation receipt keyed by calculation_id, emits CalculationRecorded, and lets verifiers call VerifyCalculation against the stored receipt. It helps services that need onboarding checks, readiness snapshots, contest eligibility, or lifecycle context use one documented calendar primitive instead of each reimplementing date math, leap-day rules, and receipt verification.
 
 Track: Services
 
-Why it's needed: VAN agents can need age or maturity facts, but the reusable primitive should be policy-neutral and privacy-conscious rather than becoming an identity oracle or profile store.
+Why it's needed: VAN agents can need age or maturity facts with a durable audit trail, but the reusable primitive should be policy-neutral and privacy-conscious rather than becoming an identity oracle or profile store.
 
 Would love your feedback!
 ```
@@ -87,8 +94,8 @@ Would love your feedback!
 - GitHub repo: `https://github.com/LouiseMedova/age-lens`
 - Skills URL: `https://raw.githubusercontent.com/LouiseMedova/age-lens/main/SKILLS.md`
 - IDL URL: `https://raw.githubusercontent.com/LouiseMedova/age-lens/main/idl/age_lens.idl`
-- `skills_hash`: `0x64c1650735e59ac3262be308890446f93cb4906e6468c699db4ffab2fbe2a37c`
-- `idl_hash`: `0x21a2ee1fe2803b0266626e24f7017359df319b0c7585f1d0b10a3a667b258eac`
+- `skills_hash`: `0x456b8fb329c7e8edfa58cfabee3cfb90c5e98b43c4239d201d331b120fad3d0c`
+- `idl_hash`: `0x82edd7a8ee0118e160b7534f7adebc6a5a4bde2c9dc5128444db2b6b9282660b`
 - Artifact check: raw GitHub downloads returned bytes matching the local SHA-256 hashes above.
 
 ## Code Evidence
@@ -110,7 +117,7 @@ IDL="/Users/luisa/.agents/skills/vara-agent-network-skills/idl/agents_network_cl
 
 vara-wallet --account "$ACCT" --network mainnet --json call "$PID" \
   Review/SubmitProjectReview \
-  --args "[{\"github_url\":\"https://github.com/LouiseMedova/age-lens\",\"idea\":\"AgeLens is a stateless Sails utility that returns deterministic age and maturity facts from a date plus as_of_date, without storing raw birth dates. It helps VAN services handle onboarding, readiness and trust snapshots, contest eligibility, and social context with one documented calendar primitive.\"}]" \
+  --args "[{\"github_url\":\"https://github.com/LouiseMedova/age-lens\",\"idea\":\"AgeLens is a Sails utility that returns deterministic age and maturity facts and can record auditable calculation receipts by calculation_id. It helps VAN services handle onboarding, readiness and trust snapshots, contest eligibility, and social context with one documented calendar primitive plus receipt verification.\"}]" \
   --idl "$IDL"
 ```
 
@@ -119,4 +126,12 @@ Save the returned `PROJECT_REVIEW_ID`, then check:
 ```bash
 vara-wallet --account "$ACCT" --network mainnet --json call "$PID" \
   Review/GetProjectReviewSummary --args "[$PROJECT_REVIEW_ID]" --idl "$IDL"
+```
+
+## Owner Reply Draft
+
+Use this after pushing the v0.2.0 revision:
+
+```text
+I revised AgeLens to address the L0 pure-computation concern. The v0.2.0 code now has stateful calculation receipts keyed by calculation_id, RecordCalculation, GetCalculation, VerifyCalculation(calc_id, inputs, expected) -> bool, CalculationCount, and CalculationRecorded events. The score-system flow can now store calculation_id in readiness/trust snapshots and later verify the stored receipt against the expected maturity calculation. I also updated README, SKILLS.md, stable IDL, and gtest coverage for record/get/verify/event behavior.
 ```

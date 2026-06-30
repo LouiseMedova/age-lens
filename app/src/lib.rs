@@ -3,9 +3,9 @@
 #[cfg(test)]
 extern crate std;
 
-use sails_rs::prelude::*;
+use sails_rs::{cell::RefCell, collections::BTreeMap, gstd::msg, prelude::*};
 
-pub const VERSION: &str = "0.1.0";
+pub const VERSION: &str = "0.2.0";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Encode, Decode, TypeInfo, ReflectHash)]
 #[codec(crate = sails_rs::scale_codec)]
@@ -72,7 +72,92 @@ pub struct DaysThresholdReport {
     pub reason: EligibilityReason,
 }
 
-pub struct Program;
+#[derive(Clone, Debug, PartialEq, Eq, Encode, Decode, TypeInfo, ReflectHash)]
+#[codec(crate = sails_rs::scale_codec)]
+#[type_info(crate = sails_rs::type_info)]
+#[reflect_hash(crate = sails_rs)]
+pub struct CalculateAgeInput {
+    pub birth_date: Date,
+    pub as_of_date: Date,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Encode, Decode, TypeInfo, ReflectHash)]
+#[codec(crate = sails_rs::scale_codec)]
+#[type_info(crate = sails_rs::type_info)]
+#[reflect_hash(crate = sails_rs)]
+pub struct AgeThresholdInput {
+    pub birth_date: Date,
+    pub as_of_date: Date,
+    pub minimum_age: u16,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Encode, Decode, TypeInfo, ReflectHash)]
+#[codec(crate = sails_rs::scale_codec)]
+#[type_info(crate = sails_rs::type_info)]
+#[reflect_hash(crate = sails_rs)]
+pub struct DaysThresholdInput {
+    pub birth_date: Date,
+    pub as_of_date: Date,
+    pub minimum_days: u32,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Encode, Decode, TypeInfo, ReflectHash)]
+#[codec(crate = sails_rs::scale_codec)]
+#[type_info(crate = sails_rs::type_info)]
+#[reflect_hash(crate = sails_rs)]
+pub enum CalculationRequest {
+    CalculateAge(CalculateAgeInput),
+    CheckAgeThreshold(AgeThresholdInput),
+    CheckAgeDaysThreshold(DaysThresholdInput),
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Encode, Decode, TypeInfo, ReflectHash)]
+#[codec(crate = sails_rs::scale_codec)]
+#[type_info(crate = sails_rs::type_info)]
+#[reflect_hash(crate = sails_rs)]
+pub enum CalculationResult {
+    Age(AgeReport),
+    Threshold(ThresholdReport),
+    DaysThreshold(DaysThresholdReport),
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Encode, Decode, TypeInfo, ReflectHash)]
+#[codec(crate = sails_rs::scale_codec)]
+#[type_info(crate = sails_rs::type_info)]
+#[reflect_hash(crate = sails_rs)]
+pub struct CalculationReceipt {
+    pub calculation_id: u64,
+    pub caller: ActorId,
+    pub request: CalculationRequest,
+    pub result: CalculationResult,
+}
+
+#[sails_rs::event]
+#[derive(Clone, Debug, PartialEq, Eq, Encode, Decode, TypeInfo, ReflectHash)]
+#[codec(crate = sails_rs::scale_codec)]
+#[type_info(crate = sails_rs::type_info)]
+#[reflect_hash(crate = sails_rs)]
+pub enum AgeLensEvent {
+    CalculationRecorded(CalculationReceipt),
+}
+
+struct AgeLensState {
+    next_calculation_id: u64,
+    calculations: BTreeMap<u64, CalculationReceipt>,
+}
+
+impl Default for AgeLensState {
+    fn default() -> Self {
+        Self {
+            next_calculation_id: 1,
+            calculations: BTreeMap::new(),
+        }
+    }
+}
+
+pub struct Program {
+    state: RefCell<AgeLensState>,
+}
 
 impl Default for Program {
     fn default() -> Self {
@@ -83,18 +168,28 @@ impl Default for Program {
 #[program]
 impl Program {
     pub fn new() -> Self {
-        Self
+        Self {
+            state: RefCell::new(AgeLensState::default()),
+        }
     }
 
-    pub fn age_lens(&self) -> AgeLensService {
-        AgeLensService
+    pub fn age_lens(&self) -> AgeLensService<'_> {
+        AgeLensService::new(&self.state)
     }
 }
 
-pub struct AgeLensService;
+pub struct AgeLensService<'a> {
+    state: &'a RefCell<AgeLensState>,
+}
 
-#[service]
-impl AgeLensService {
+impl<'a> AgeLensService<'a> {
+    fn new(state: &'a RefCell<AgeLensState>) -> Self {
+        Self { state }
+    }
+}
+
+#[service(events = AgeLensEvent)]
+impl AgeLensService<'_> {
     #[export(unwrap_result)]
     pub fn calculate_age(&self, birth_date: Date, as_of_date: Date) -> Result<AgeReport, String> {
         calculate_age_report(birth_date, as_of_date)
@@ -123,6 +218,87 @@ impl AgeLensService {
     #[export]
     pub fn version(&self) -> String {
         VERSION.into()
+    }
+
+    #[export(unwrap_result)]
+    pub fn record_calculation(
+        &mut self,
+        request: CalculationRequest,
+    ) -> Result<CalculationReceipt, String> {
+        let result = execute_calculation_request(request.clone())?;
+        let receipt = {
+            let mut state = self.state.borrow_mut();
+            let calculation_id = state.next_calculation_id;
+            state.next_calculation_id = state
+                .next_calculation_id
+                .checked_add(1)
+                .ok_or_else(|| String::from("calculation_id overflow"))?;
+
+            let receipt = CalculationReceipt {
+                calculation_id,
+                caller: msg::source(),
+                request,
+                result,
+            };
+            state.calculations.insert(calculation_id, receipt.clone());
+            receipt
+        };
+
+        self.emit_event(AgeLensEvent::CalculationRecorded(receipt.clone()))
+            .expect("failed to emit CalculationRecorded");
+
+        Ok(receipt)
+    }
+
+    #[export]
+    pub fn get_calculation(&self, calculation_id: u64) -> Option<CalculationReceipt> {
+        self.state
+            .borrow()
+            .calculations
+            .get(&calculation_id)
+            .cloned()
+    }
+
+    #[export]
+    pub fn verify_calculation(
+        &self,
+        calculation_id: u64,
+        inputs: CalculationRequest,
+        expected: CalculationResult,
+    ) -> bool {
+        let Ok(recomputed) = execute_calculation_request(inputs.clone()) else {
+            return false;
+        };
+
+        if recomputed != expected {
+            return false;
+        }
+
+        match self.state.borrow().calculations.get(&calculation_id) {
+            Some(receipt) => receipt.request == inputs && receipt.result == expected,
+            None => false,
+        }
+    }
+
+    #[export]
+    pub fn calculation_count(&self) -> u64 {
+        self.state.borrow().calculations.len() as u64
+    }
+}
+
+fn execute_calculation_request(request: CalculationRequest) -> Result<CalculationResult, String> {
+    match request {
+        CalculationRequest::CalculateAge(input) => {
+            calculate_age_report(input.birth_date, input.as_of_date).map(CalculationResult::Age)
+        }
+        CalculationRequest::CheckAgeThreshold(input) => {
+            check_age_threshold_report(input.birth_date, input.as_of_date, input.minimum_age)
+                .map(CalculationResult::Threshold)
+        }
+        CalculationRequest::CheckAgeDaysThreshold(input) => {
+            check_age_days_threshold_report(input.birth_date, input.as_of_date, input.minimum_days)
+                .map(CalculationResult::DaysThreshold)
+        }
     }
 }
 
@@ -317,6 +493,14 @@ mod tests {
         Date { year, month, day }
     }
 
+    fn maturity_request() -> CalculationRequest {
+        CalculationRequest::CheckAgeDaysThreshold(DaysThresholdInput {
+            birth_date: d(2026, 6, 1),
+            as_of_date: d(2026, 6, 30),
+            minimum_days: 7,
+        })
+    }
+
     #[test]
     fn calculates_full_age_after_birthday() {
         let report = calculate_age_report(d(1998, 4, 21), d(2026, 6, 30)).unwrap();
@@ -368,5 +552,32 @@ mod tests {
 
         assert_eq!(report.years, 26);
         assert!(report.is_birthday_today);
+    }
+
+    #[test]
+    fn executes_calculation_request_for_receipt_storage() {
+        let result = execute_calculation_request(maturity_request()).unwrap();
+
+        assert_eq!(
+            result,
+            CalculationResult::DaysThreshold(DaysThresholdReport {
+                eligible: true,
+                days_alive: 29,
+                minimum_days: 7,
+                reason: EligibilityReason::AgeAtOrAboveThreshold,
+            })
+        );
+    }
+
+    #[test]
+    fn rejects_invalid_calculation_request_before_receipt_storage() {
+        let error =
+            execute_calculation_request(CalculationRequest::CalculateAge(CalculateAgeInput {
+                birth_date: d(2026, 2, 29),
+                as_of_date: d(2026, 6, 30),
+            }))
+            .unwrap_err();
+
+        assert_eq!(error, "day is invalid for the given month and year");
     }
 }
