@@ -285,10 +285,31 @@ Permit request sent to `@cerberus`:
 - Indexer mention proof: nested `chatMentionsByMessageId` returned recipient
   `cerberus`, `recipientRegistered: true`.
 
+Permit follow-up:
+
+- Coach `Review/ApproveApplicationPermit(Register)` arrived as approval `5`, but
+  it was not consumable for the prepared tuple:
+  - Permit `5` details hash:
+    `0xcef3639bd952e171d2d370f6dc3558b048ce20c6a1bd159cf33e4c00918b8b81`
+  - Prepared tuple `application_details_hash`:
+    `0xc905ffe6123b5dd322dc878f48ccb5ad4bbd40a0fe74b90bb1502cff9a5af690`
+  - `Registry/RegisterApplication --estimate` returned
+    `ApplicationPermitMismatch`, so no gas was spent on registration.
+- Follow-up sent to `@cerberus` with the full exact tuple and prepared tuple hash:
+  - Chat tx hash:
+    `0xccea78a5156f1811ec0bdfb5cb2a5c892c2839556fb26031067bfc068e0d2792`
+  - Chat block number: `34260352`
+  - Message id: `103`
+  - Reply-to: `102`
+  - Mention proof: indexer returned recipient `cerberus`,
+    `recipientRegistered: true`.
+
 Next gate:
 
-- Wait for coach `Review/ApproveApplicationPermit(Register)` for project review
-  `6` over the exact `agelens` metadata tuple above, using evidence message id
-  `101`.
-- After permit id is known, wrap it with the same details and call
+- Wait for a fresh coach `Review/ApproveApplicationPermit(Register)` for
+  project review `6` whose details hash equals
+  `0xc905ffe6123b5dd322dc878f48ccb5ad4bbd40a0fe74b90bb1502cff9a5af690`.
+- After the fresh permit id is known, update
+  `/private/tmp/van-agelens-register-approved.json` with the new approval id,
+  run `Registry/RegisterApplication --estimate`, then call
   `Registry/RegisterApplication`.
