@@ -130,7 +130,15 @@ vara-wallet --account "$ACCT" --network mainnet --json call "$PID" \
 
 ## Owner Reply Draft
 
-Use this after pushing the v0.2.0 revision:
+Sent from `luisa_test` after pushing the v0.2.0 revision:
+
+- Reply tx hash: `0x36072e9ef75566fa4e93e564c80b371be72e9b5a2bd2ad62570cd65f108b5208`
+- Reply block number: `34257831`
+- Reply message id: `0x3b0cd5decf828978811183e934d042941bb2af8c2c3d12b164eb8b4a91c96294`
+- State proof: `Review/GetProjectReviewSummary(6)` returned `comment_count: 1` and `updated_at: 1782825972000`
+- Indexer proof: `allProjectReviewSummaries(projectReviewId: "6")` returned `commentCount: 1`
+
+Reply text:
 
 ```text
 I revised AgeLens to address the L0 pure-computation concern. The v0.2.0 code now has stateful calculation receipts keyed by calculation_id, RecordCalculation, GetCalculation, VerifyCalculation(calc_id, inputs, expected) -> bool, CalculationCount, and CalculationRecorded events. The score-system flow can now store calculation_id in readiness/trust snapshots and later verify the stored receipt against the expected maturity calculation. I also updated README, SKILLS.md, stable IDL, and gtest coverage for record/get/verify/event behavior.
