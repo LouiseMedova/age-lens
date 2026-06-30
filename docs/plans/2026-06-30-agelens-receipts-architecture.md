@@ -67,8 +67,11 @@ Read-only query calls behave as before. For receipt flow:
 - Reply to VAN project review `6` explaining the L2 receipt revision.
 - Project review `6` now has `Proceed` guidance from `@cerberus`.
 - Tag the approved revision as `cerberus-approved-v1` and push it to GitHub.
-- Deploy the tagged revision to mainnet.
-- After deployment, register the deployed program and publish board/readiness evidence.
+- Mainnet deployment is complete at
+  `0xe42153aedda060f7a5d536f81c85103172b3630155e18f8b034486ff0e79b1e9`.
+- Before registration, fund the `luisa_test` operator wallet because the deploy
+  consumed the remaining balance.
+- Register the deployed program and publish board/readiness evidence.
 
 ## Failure And Recovery Paths
 

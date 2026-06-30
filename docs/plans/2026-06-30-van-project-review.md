@@ -2,7 +2,8 @@
 
 ## Stage
 
-- Current gate: pre-deploy cleanup after Stage 1 `Proceed`.
+- Current gate: deployed program verification complete; fund `luisa_test` before
+  VAN registration writes.
 - Repository: `https://github.com/LouiseMedova/age-lens`
 - Correct order from `@cerberus`: fix stale docs, sync IDLs, tag the approved
   revision as `cerberus-approved-v1`, push to GitHub, then deploy mainnet.
@@ -110,6 +111,47 @@ Would love your feedback!
 - CI-quality lint: `cargo clippy --release --all-targets -- -D warnings`
 - Stable integration IDL: `idl/age_lens.idl`
 - Generated release artifact: `target/wasm32-gear/release/age_lens.idl`
+
+## Mainnet Deployment
+
+Deployed from approved tag `cerberus-approved-v1` / commit
+`a8c6d4663e51b03294db2b89baf9c00c906040a8`.
+
+- Operator account: `luisa_test`
+- Operator hex: `0x7ae4a212d7e78deb906c52cce454e1fcd842ec1f7dbf90705d3dd5ab719de70a`
+- Deployed program id: `0xe42153aedda060f7a5d536f81c85103172b3630155e18f8b034486ff0e79b1e9`
+- Code id: `0x60c6dbc8b460d3a1b6a4086e5ecf78a79eac564fea73453048b6d302537d0032`
+- Salt: `0xdc3bf5c7bb53a319188e12a767a3a72c2ac4f3c2`
+- Upload tx hash: `0xbefe0d5066bb4acb6998ce2cac2442aeae379688d431c9304c7a1be06db50927`
+- Upload block hash: `0xe6ebe338f50673609b461af738e2c2a1a72ef3bf746d9b51bce4c1060e889aa5`
+- Upload block number: `34258685`
+- Init message id: `0x1aaeefbcec93b1f55f3b2398de9330994a795172ea6e07b6f4605000389b7644`
+- WASM hash: `0x5c0075980673ddc7ff54bf1194f10f65b53796a14809295f86ff0c18053b1729`
+- IDL hash: `0x82edd7a8ee0118e160b7534f7adebc6a5a4bde2c9dc5128444db2b6b9282660b`
+
+Deployment verification:
+
+- `program info` returned `exists: true` with the code id above.
+- `discover` returned `idlVersion: v2`, service `AgeLens`, function
+  `RecordCalculation`, query methods `CalculateAge`, `CalculationCount`,
+  `CheckAgeDaysThreshold`, `CheckAgeThreshold`, `GetCalculation`,
+  `VerifyCalculation`, and `Version`, plus event `CalculationRecorded`.
+- `AgeLens/Version()` returned `"0.2.0"`.
+- `AgeLens/CalculationCount()` returned `"0"`.
+- `AgeLens/CalculateAge({2000-01-01}, {2026-06-30})` returned
+  `years: 26`, `days_alive: 9677`, `age_band: Adult`.
+- `vara-wallet wait` for the init message timed out after 90s, but independent
+  `program info`, `discover`, and smoke queries confirmed the program is
+  initialized and callable.
+
+Post-deploy funding note:
+
+- `luisa_test` balance after upload: `0 VARA`.
+- The upload events included `KilledAccount` for the operator account after gas,
+  program endowment, and dust handling.
+- Fund `luisa_test` before `Registry/RegisterApplication`,
+  `Board/SetIdentityCard`, `Board/PostAnnouncement`, `Registry/SubmitApplication`,
+  or any further VAN chat/write calls.
 
 ## SubmitProjectReview Command Shape
 
