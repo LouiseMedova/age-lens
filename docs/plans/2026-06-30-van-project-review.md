@@ -229,3 +229,66 @@ Response summary:
   register Participant + Application, set IdentityCard + Board announcement,
   submit application linked to review `6`, then mention `@cerberus` for Stage
   2b and `PublishApplication`.
+
+## VAN Onboarding After Deployment
+
+Funding check after user top-up:
+
+- `luisa_test` balance: `20 VARA`
+- Raw balance: `20000000000000`
+- Operator hex: `0x7ae4a212d7e78deb906c52cce454e1fcd842ec1f7dbf90705d3dd5ab719de70a`
+- Operator SS58: `kGiK8AEJNM1vJi9wBrZWqQC4MZ2q3dnytcEUoiQcL7PC6pD5h`
+
+Participant registration:
+
+- Handle: `luisa_test`
+- GitHub: `https://github.com/LouiseMedova`
+- Estimate gas: `2783993198`
+- Register tx hash: `0xd545c8d85228ca3ee135344b8c64731465e2bf7cdb8bc1890c7a13e97f7e1382`
+- Register block hash: `0x7969f1cace561aac3a763173844eb0abe1c6a7c34a6c501638984512fe84ff7e`
+- Register block number: `34258917`
+- Register message id: `0xd4eb55ecf5fcc3e092a556cd6b909a674782b776cf808b2329956b77a0ed758d`
+- State proof: `Registry/GetParticipant(operator)` returned
+  `handle: "luisa_test"`, `github: "https://github.com/LouiseMedova"`,
+  `season_id: 1`.
+- Resolver proof: `Registry/ResolveHandle("luisa_test")` returned
+  `Participant: 0x7ae4a212d7e78deb906c52cce454e1fcd842ec1f7dbf90705d3dd5ab719de70a`.
+- Indexer proof: `participantById(operator)` returned `handle: "luisa_test"`,
+  `github: "https://github.com/LouiseMedova"`, `seasonId: 1`.
+
+Application registration metadata prepared in
+`/private/tmp/van-agelens-register-app.json`:
+
+- App handle: `agelens`
+- Program id: `0xe42153aedda060f7a5d536f81c85103172b3630155e18f8b034486ff0e79b1e9`
+- Operator: `0x7ae4a212d7e78deb906c52cce454e1fcd842ec1f7dbf90705d3dd5ab719de70a`
+- GitHub URL: `https://github.com/LouiseMedova/age-lens`
+- Track: `Services`
+- SKILLS URL: `https://raw.githubusercontent.com/LouiseMedova/age-lens/main/SKILLS.md`
+- SKILLS hash: `0x456b8fb329c7e8edfa58cfabee3cfb90c5e98b43c4239d201d331b120fad3d0c`
+- IDL URL: `https://raw.githubusercontent.com/LouiseMedova/age-lens/main/idl/age_lens.idl`
+- IDL hash: `0x82edd7a8ee0118e160b7534f7adebc6a5a4bde2c9dc5128444db2b6b9282660b`
+- Preflight result: all checks passed. Raw GitHub URLs returned HTTP 200 and
+  served bytes matching the stored SHA-256 hashes.
+- Resume-safety proof: `Registry/ResolveHandle("agelens")` returned `null`,
+  and `Registry/GetApplication(program_id)` returned `null`.
+
+Permit request sent to `@cerberus`:
+
+- Chat tx hash: `0x261e27454de0b6f7566f74f00887c44a342bea679db7f402b745b5bf313c794c`
+- Chat block hash: `0xeb098e1356e42ad9e89c11716f1c9d5fe56c5d26d10410a1fe19c13c4cb5c2de`
+- Chat block number: `34259088`
+- Chat message id: `0xe5326c291f960181e0ac69cb6c36e68c2e0abf3770cd0b81908b5481efb58881`
+- Chat result id / evidence message id: `101`
+- Indexer message proof: latest `allChatMessages` for author `luisa_test`
+  returned `msgId: "101"` at block `34259088`.
+- Indexer mention proof: nested `chatMentionsByMessageId` returned recipient
+  `cerberus`, `recipientRegistered: true`.
+
+Next gate:
+
+- Wait for coach `Review/ApproveApplicationPermit(Register)` for project review
+  `6` over the exact `agelens` metadata tuple above, using evidence message id
+  `101`.
+- After permit id is known, wrap it with the same details and call
+  `Registry/RegisterApplication`.
