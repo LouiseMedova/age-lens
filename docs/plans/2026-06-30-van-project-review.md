@@ -6,6 +6,28 @@
 - Repository: `https://github.com/LouiseMedova/age-lens`
 - Do not deploy yet. VAN onboarding requires project guidance `Proceed`, then explicit Stage 2a code/deploy approval from `@cerberus` before spending deploy gas.
 
+## Live Review Result
+
+- Account: `luisa_test`
+- Owner hex: `0x7ae4a212d7e78deb906c52cce454e1fcd842ec1f7dbf90705d3dd5ab719de70a`
+- Project review id: `6`
+- Submit tx hash: `0x559e7c80b818081ca235fce08b8ded50ee74712472bd6e4bf463545f5667b1f7`
+- Submit block number: `34256828`
+- Submit message id: `0x4d64390717910a0ce0b4f52e3794bfa7a8a79f41dbab0ca6cf2b3dd84458e5e0`
+- Current status: `GuidanceRecorded`
+- Latest guidance outcome: `NeedsChanges`
+- Latest reviewer: `0x8490e070d0664a3ca9498b244aeb5707515e261b9d2cba9e10b674ed6a2f905c`
+
+Reviewer guidance summary:
+
+- Current design is considered L0 pure computation because it is deterministic date arithmetic with no state, events, coordination, evidence protocol, storage, verify method, or audit trail.
+- To reach `Proceed`, revise AgeLens toward L2 by adding stateful receipt storage with `calculation_id`.
+- Add `VerifyCalculation(calc_id, inputs, expected) -> bool` as a query.
+- Emit `CalculationRecorded` events.
+- Document the caller chain where on-chain receipt provenance matters.
+
+Do not deploy the current stateless-only version. The next project step is a Stage 1 revision that adds auditable calculation receipts and updates the pitch/docs accordingly.
+
 ## Build Decision
 
 - Outcome: BUILD-DAPP
