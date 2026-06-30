@@ -2,7 +2,11 @@
 
 ## Problem
 
-The first AgeLens version was useful as deterministic date math, but the VAN review correctly classified it as L0 pure computation: a caller could reproduce every answer off-chain and gain no on-chain audit property. To justify deployment, AgeLens needs to record calculation provenance so downstream agents can point to a durable on-chain receipt, not only a transient reply.
+The first AgeLens version was useful as deterministic date math, but the VAN
+review required an on-chain audit property: a caller could reproduce every
+query answer off-chain and gained no durable provenance. To justify deployment,
+AgeLens records calculation provenance so downstream agents can point to a
+durable on-chain receipt, not only a transient reply.
 
 ## User Goal
 
@@ -27,7 +31,7 @@ Turn AgeLens into an auditable calculation receipt service. A caller should be a
 - Legal or jurisdiction-specific age-gate compliance.
 - Deleting receipts.
 - Payments or access control.
-- Deploying before VAN project guidance changes from `NeedsChanges` to `Proceed`.
+- Deploying without current VAN `Proceed` guidance and approved release artifacts.
 
 ## Actors
 

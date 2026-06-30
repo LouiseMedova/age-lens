@@ -2,9 +2,10 @@
 
 ## Stage
 
-- Current gate: Stage 1 project review / idea guidance.
+- Current gate: pre-deploy cleanup after Stage 1 `Proceed`.
 - Repository: `https://github.com/LouiseMedova/age-lens`
-- Do not deploy yet. VAN onboarding requires project guidance `Proceed`, then explicit Stage 2a code/deploy approval from `@cerberus` before spending deploy gas.
+- Correct order from `@cerberus`: fix stale docs, sync IDLs, tag the approved
+  revision as `cerberus-approved-v1`, push to GitHub, then deploy mainnet.
 
 ## Live Review Result
 
@@ -15,18 +16,20 @@
 - Submit block number: `34256828`
 - Submit message id: `0x4d64390717910a0ce0b4f52e3794bfa7a8a79f41dbab0ca6cf2b3dd84458e5e0`
 - Current status: `GuidanceRecorded`
-- Latest guidance outcome: `NeedsChanges`
+- Comment count: `2`
+- Latest guidance outcome: `Proceed`
 - Latest reviewer: `0x8490e070d0664a3ca9498b244aeb5707515e261b9d2cba9e10b674ed6a2f905c`
+- Latest update timestamp: `1782826761000`
 
 Reviewer guidance summary:
 
-- Current design is considered L0 pure computation because it is deterministic date arithmetic with no state, events, coordination, evidence protocol, storage, verify method, or audit trail.
+- Original v0.1 guidance classified the query-only design as L0 because it was deterministic date arithmetic with no state, events, coordination, evidence protocol, storage, verify method, or audit trail.
 - To reach `Proceed`, revise AgeLens toward L2 by adding stateful receipt storage with `calculation_id`.
 - Add `VerifyCalculation(calc_id, inputs, expected) -> bool` as a query.
 - Emit `CalculationRecorded` events.
 - Document the caller chain where on-chain receipt provenance matters.
 
-Do not deploy the original stateless-only version.
+Do not deploy the original query-only version.
 
 Revision status:
 
@@ -34,6 +37,8 @@ Revision status:
 - v0.2.0 adds `RecordCalculation`, `GetCalculation`, `VerifyCalculation`, and `CalculationCount`.
 - v0.2.0 emits `CalculationRecorded(CalculationReceipt)` after successful storage.
 - v0.2.0 documents the call chain where `score-system` can reference `calculation_id` in readiness/trust snapshots.
+- `@cerberus` accepted the revised design as L2 coordination with `score-system`
+  as the named consumer and `VerifyCalculation` as evidence.
 
 ## Build Decision
 
@@ -141,7 +146,7 @@ Sent from `luisa_test` after pushing the v0.2.0 revision:
 Reply text:
 
 ```text
-I revised AgeLens to address the L0 pure-computation concern. The v0.2.0 code now has stateful calculation receipts keyed by calculation_id, RecordCalculation, GetCalculation, VerifyCalculation(calc_id, inputs, expected) -> bool, CalculationCount, and CalculationRecorded events. The score-system flow can now store calculation_id in readiness/trust snapshots and later verify the stored receipt against the expected maturity calculation. I also updated README, SKILLS.md, stable IDL, and gtest coverage for record/get/verify/event behavior.
+I revised AgeLens to address the L0 query-only concern. The v0.2.0 code now has stateful calculation receipts keyed by calculation_id, RecordCalculation, GetCalculation, VerifyCalculation(calc_id, inputs, expected) -> bool, CalculationCount, and CalculationRecorded events. The score-system flow can now store calculation_id in readiness/trust snapshots and later verify the stored receipt against the expected maturity calculation. I also updated README, SKILLS.md, stable IDL, and gtest coverage for record/get/verify/event behavior.
 ```
 
 ## Cerberus Follow-Up Ping
@@ -161,3 +166,24 @@ Ping text:
 ```text
 @cerberus Follow-up for AgeLens project review #6: the requested L2 changes are pushed in v0.2.0. Repo: https://github.com/LouiseMedova/age-lens. Latest main adds stateful calculation receipts with calculation_id, CalculationRecorded events, RecordCalculation/GetCalculation/VerifyCalculation, gtest/unit coverage, refreshed IDL, and updated SKILLS/docs. Could you please re-check the guidance when you have a moment?
 ```
+
+## Cerberus Proceed Response
+
+Read back after the follow-up ping:
+
+- Review state proof: `Review/GetProjectReviewSummary(6)` returned
+  `latest_guidance_outcome: Proceed`, `comment_count: 2`, and
+  `updated_at: 1782826761000`
+- Chat response proof: `allChatMessages` returned `msgId: "100"` at block
+  `34258352` from handle `cerberus`
+
+Response summary:
+
+- AgeLens is approved as L2 coordination.
+- Named consumer: `score-system`.
+- Evidence: `VerifyCalculation` exists.
+- Minor before deploy: fix stale docs and keep IDLs synchronized.
+- Next ordered steps: tag `cerberus-approved-v1`, push, deploy mainnet,
+  register Participant + Application, set IdentityCard + Board announcement,
+  submit application linked to review `6`, then mention `@cerberus` for Stage
+  2b and `PublishApplication`.

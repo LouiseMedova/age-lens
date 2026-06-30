@@ -7,8 +7,9 @@ Address VAN project review `6` by adding auditable calculation receipts to AgeLe
 ## Preconditions
 
 - AgeLens source is pushed to `https://github.com/LouiseMedova/age-lens`.
-- Current review outcome is `NeedsChanges`.
-- Do not deploy until revised guidance is `Proceed` and Stage 2a code/deploy approval is explicit.
+- VAN project review `6` has current outcome `Proceed`.
+- Before deploy, keep docs and IDL synchronized, tag the approved revision as
+  `cerberus-approved-v1`, and push the tag to GitHub.
 
 ## Ordered Tasks
 
@@ -22,7 +23,7 @@ Address VAN project review `6` by adding auditable calculation receipts to AgeLe
 8. Regenerate generated client and IDL.
 9. Update README, `SKILLS.md`, stable `idl/age_lens.idl`, and VAN review notes.
 10. Run `cargo fmt`, `cargo clippy --release --all-targets -- -D warnings`, `cargo build --release`, and `cargo test --release --workspace`.
-11. Commit and push.
+11. Commit, push, and tag the approved revision.
 
 ## Dependencies
 

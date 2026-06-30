@@ -2,7 +2,7 @@
 
 ## Summary
 
-AgeLens becomes a small auditable receipt service while preserving the existing pure query surface. The new command path records calculation provenance on-chain and the query path lets verifiers check that a stored receipt matches supplied inputs and expected output.
+AgeLens becomes a small auditable receipt service while preserving the existing read-only query surface. The new command path records calculation provenance on-chain and the query path lets verifiers check that a stored receipt matches supplied inputs and expected output.
 
 ## Program And Service Boundaries
 
@@ -19,7 +19,7 @@ The state is initialized by `Program::new()`. Tests deploy a fresh program per c
 
 ## Message Flow
 
-Pure query calls behave as before. For receipt flow:
+Read-only query calls behave as before. For receipt flow:
 
 1. Caller sends `AgeLens/RecordCalculation(request)`.
 2. The service validates and computes the matching `CalculationResult`.
@@ -65,14 +65,16 @@ Pure query calls behave as before. For receipt flow:
 - Build and test locally.
 - Push source, refreshed IDL, and docs to GitHub.
 - Reply to VAN project review `6` explaining the L2 receipt revision.
-- Wait for `Proceed` before deployment.
+- Project review `6` now has `Proceed` guidance from `@cerberus`.
+- Tag the approved revision as `cerberus-approved-v1` and push it to GitHub.
+- Deploy the tagged revision to mainnet.
 - After deployment, register the deployed program and publish board/readiness evidence.
 
 ## Failure And Recovery Paths
 
 - If receipt storage has a bug before deployment, fix and rerun gtest.
 - If a future deployed version needs replacement, use VAN application transition flow rather than mutating stale registry metadata.
-- Existing pure query methods remain usable even if callers do not need receipts.
+- Existing read-only query methods remain usable even if callers do not need receipts.
 
 ## Open Questions
 
