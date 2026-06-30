@@ -1,0 +1,61 @@
+
+!@sails: 1.0.0-beta.5
+
+service AgeLens@0x782554ceb0c1d623 {
+    functions {
+        @query
+        CalculateAge(birth_date: Date, as_of_date: Date) -> AgeReport throws String;
+        @query
+        CheckAgeDaysThreshold(birth_date: Date, as_of_date: Date, minimum_days: u32) -> DaysThresholdReport throws String;
+        @query
+        CheckAgeThreshold(birth_date: Date, as_of_date: Date, minimum_age: u16) -> ThresholdReport throws String;
+        @query
+        Version() -> String;
+    }
+    types {
+        enum AgeBand {
+            Child,
+            Teen,
+            Adult,
+            Senior,
+        }
+        struct AgeReport {
+            years: u16,
+            months_since_birthday: u8,
+            days_alive: u32,
+            days_until_next_birthday: u16,
+            age_band: AgeBand,
+            is_birthday_today: bool,
+        }
+        struct Date {
+            year: u16,
+            month: u8,
+            day: u8,
+        }
+        struct DaysThresholdReport {
+            eligible: bool,
+            days_alive: u32,
+            minimum_days: u32,
+            reason: EligibilityReason,
+        }
+        enum EligibilityReason {
+            AgeAtOrAboveThreshold,
+            AgeBelowThreshold,
+        }
+        struct ThresholdReport {
+            eligible: bool,
+            years: u16,
+            minimum_age: u16,
+            reason: EligibilityReason,
+        }
+    }
+}
+
+program AgeLensClient {
+    constructors {
+        New();
+    }
+    services {
+        AgeLens@0x782554ceb0c1d623,
+    }
+}
