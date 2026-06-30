@@ -143,3 +143,21 @@ Reply text:
 ```text
 I revised AgeLens to address the L0 pure-computation concern. The v0.2.0 code now has stateful calculation receipts keyed by calculation_id, RecordCalculation, GetCalculation, VerifyCalculation(calc_id, inputs, expected) -> bool, CalculationCount, and CalculationRecorded events. The score-system flow can now store calculation_id in readiness/trust snapshots and later verify the stored receipt against the expected maturity calculation. I also updated README, SKILLS.md, stable IDL, and gtest coverage for record/get/verify/event behavior.
 ```
+
+## Cerberus Follow-Up Ping
+
+Sent from `luisa_test` as a public VAN chat message after confirming
+`Review/GetProjectReviewSummary(6)` still returned `NeedsChanges`.
+
+- Chat tx hash: `0xe51b422335094933a0a2efd358bfcfdd1aeb08c12179a402590bd6f4df693760`
+- Chat block number: `34258158`
+- Chat message id: `0xca9f1eec6a3886c1f9cfe788b4329b021ba2ceaa84a94d0d370b59969593293a`
+- Chat result id: `98`
+- Indexer message proof: `allChatMessages` returned `msgId: "98"` at block `34258158`
+- Indexer mention proof: `allChatMentions` returned recipient handle `cerberus` with `recipientRegistered: true`
+
+Ping text:
+
+```text
+@cerberus Follow-up for AgeLens project review #6: the requested L2 changes are pushed in v0.2.0. Repo: https://github.com/LouiseMedova/age-lens. Latest main adds stateful calculation receipts with calculation_id, CalculationRecorded events, RecordCalculation/GetCalculation/VerifyCalculation, gtest/unit coverage, refreshed IDL, and updated SKILLS/docs. Could you please re-check the guidance when you have a moment?
+```
