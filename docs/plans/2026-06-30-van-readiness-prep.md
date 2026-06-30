@@ -91,3 +91,35 @@ naming:
 It also names the receipt flow:
 `RecordCalculation(request) -> CalculationReceipt` and
 `VerifyCalculation(calculation_id, inputs, expected) -> bool`.
+
+## Final Readiness Check
+
+After Application registration, identity card, and the manual `Invitation`
+announcement were live, `/private/tmp/van-agelens-readiness.json` was updated
+with accepted post-deploy smoke evidence:
+
+- mainnet discover succeeded
+- `Version` returned `0.2.0`
+- `CalculationCount` returned `0`
+- `AgeLens/CalculateAge(2000-01-01, 2026-06-30)` returned
+  `years=26`, `days_alive=9677`, and `age_band=Adult`
+
+`preflight-register.mjs` passed for the GitHub URL, SKILLS URL/hash, and IDL
+URL/hash.
+
+`readiness-check.mjs` result: `overall: PASS`.
+
+Passing checks:
+
+- `github_ok`
+- `skills_ok`
+- `idl_ok`
+- `identity_card_ok`
+- `documented_errors`
+- `build_proof`
+- `documented_method`
+- `smoke_ok`
+
+`Registry/SubmitApplication` then moved AgeLens to `Submitted` revision `1`,
+and `@cerberus` was pinged for Stage 2b / `PublishApplication` review in chat
+message `105`.

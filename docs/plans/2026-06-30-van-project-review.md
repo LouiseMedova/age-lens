@@ -304,12 +304,78 @@ Permit follow-up:
   - Mention proof: indexer returned recipient `cerberus`,
     `recipientRegistered: true`.
 
+Application registration:
+
+- Fresh coach permit arrived as approval `6` with the prepared tuple hash:
+  `0xc905ffe6123b5dd322dc878f48ccb5ad4bbd40a0fe74b90bb1502cff9a5af690`.
+- `Registry/RegisterApplication --estimate` passed with gas limit
+  `3645677853`.
+- Register tx hash:
+  `0xcd30b01bad4f3295e4ede75a05715dd36725331217060b5c57e769fc36c62b8b`
+- Register block number: `34260473`
+- Register message id:
+  `0xa4f24de1beacb71f3bbe1e4550ef2c9e7a65070171f3b6fa0bd56eeadf1379b4`
+- State proof: `Registry/GetApplication(program_id)` returned handle
+  `agelens`, owner
+  `0x7ae4a212d7e78deb906c52cce454e1fcd842ec1f7dbf90705d3dd5ab719de70a`,
+  track `Services`, and status `Building`.
+- Review proof: `Review/GetProjectReviewSummary(6)` returned status `Linked`,
+  linked program id
+  `0xe42153aedda060f7a5d536f81c85103172b3630155e18f8b034486ff0e79b1e9`,
+  and latest guidance outcome `Proceed`.
+- Indexer proof: `applicationPermitByApprovalId(6)` returned
+  `consumedProgramId` equal to the AgeLens program id and non-null
+  `consumedAt`.
+
+Board and readiness:
+
+- `Board/SetIdentityCard --estimate` passed with gas limit `3024201282`.
+- Identity card tx hash:
+  `0xc2f5a228d455e928a2cca9530a08c4161637fdfa2e54aff7dcc1ee085b29ffdd`
+- Identity card block number: `34260497`
+- Identity card message id:
+  `0x3fbfb5d699fc807a4d5f334b82f1c3ca1361e51fff00034903ddf02d44bd6e89`
+- Indexer proof: `identityCardById(program_id)` returned the full AgeLens
+  card with tags `age`, `eligibility`, `receipts`, `services`, and
+  `score-system`.
+- `Board/PostAnnouncement --estimate` passed with gas limit `3415175662`.
+- Announcement tx hash:
+  `0x088d0c40e1cce40bc8af6c897c5d2736d76138440403ab795c7c7086b9fc450e`
+- Announcement block number: `34260537`
+- Announcement message id:
+  `0x66c7243e2795be3e3af43a9f07ea744c8affda1844ff0a675a440708bbed0e8a`
+- Announcement id: `8`
+- Indexer proof: active `Invitation` announcement id `8` names
+  `AgeLens/CalculateAge`, args, return shape, errors, receipt flow, and target
+  callers.
+- `preflight-register.mjs` passed for the GitHub URL, SKILLS URL/hash, and IDL
+  URL/hash.
+- `readiness-check.mjs` passed with `overall: "PASS"`.
+
+Submit for publish review:
+
+- `Registry/SubmitApplication --estimate` passed with gas limit `3106512032`.
+- Submit tx hash:
+  `0x871977c66d223b8a258303fef90464acb0afc952e588e8455de7426725acf875`
+- Submit block number: `34260569`
+- Submit message id:
+  `0xe3feeda199e7e4818c89d24900a61be053978059ea533b595f48697202d7bade`
+- State proof: `Registry/GetApplication(program_id)` returned status
+  `Submitted`.
+- Review proof: `Review/GetReviewSummary(program_id)` returned
+  `display_revision: 1` and `submission_revision: 1`.
+- Indexer proof: `applicationById(program_id)` returned status `Submitted`;
+  `reviewSummaryByProgramId(program_id)` returned display/submission revision
+  `1`; project review `6` remains linked with guidance `Proceed`.
+- Stage 2b ping sent to `@cerberus`:
+  - Chat tx hash:
+    `0x41fc8573ba0283453504154ecff33edbbc490b5568505fd271b7fe80da18d1a0`
+  - Chat block number: `34260695`
+  - Chat result id: `105`
+  - Reply-to: `104`
+  - Mention proof: indexer returned recipient `cerberus`,
+    `recipientRegistered: true`.
+
 Next gate:
 
-- Wait for a fresh coach `Review/ApproveApplicationPermit(Register)` for
-  project review `6` whose details hash equals
-  `0xc905ffe6123b5dd322dc878f48ccb5ad4bbd40a0fe74b90bb1502cff9a5af690`.
-- After the fresh permit id is known, update
-  `/private/tmp/van-agelens-register-approved.json` with the new approval id,
-  run `Registry/RegisterApplication --estimate`, then call
-  `Registry/RegisterApplication`.
+- Wait for Cerberus/Foundation publish decision on submitted revision `1`.
